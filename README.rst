@@ -1,3 +1,121 @@
+# M220JS Below are my own notes How to use this guide.
+This guide will not really be broken into Chapters but broken up by concepts. If a later chapter has information that furthers conceptual knowledge of a topic
+it will be written up to the same section. In the future you might see UML code which is a text based way to draw diagrams in a UML supported editor.
+I highly recommend Boostnote to view this markdown.
+
+## Using the Course without Cloud DBs
+* As a user I want to complete this course without using my cloud or using the local version of the db.
+
+## Overview
+
+The instructions here will both be imperative and declarative. It wont have any answers to the course. It will just be a collection of thoughts and deep dives into the code.
+
+* [Understanding Docker as if it were a Game Boy - James Audretsch - Medium](https://medium.com/@audretschjames/understanding-docker-as-if-it-were-a-gameboy-96c96392efbf)
+* [GitHub - dylanlrrb/Please-Contain-Yourself: A Docker tutorial written for people who don't actually know Docker already.](https://github.com/dylanlrrb/Please-Contain-Yourself/)
+
+* If these two articles had a baby, this would be it.
+
+## Pre-stuff
+* download mflix from the handouts
+* unzip it. and go to that folder
+* npm install
+
+## Docker Version
+
+* Get the image
+  * docker pull mongo:4.04 or just pull the latest
+* run the image with a few settings
+  * ```bash
+    docker run -d -p 27018:27017 /
+    --name m220js /
+    --v $(pwd)\input:\db\configdb /
+    --v course-m220js-data:\db\data /
+    mongo
+    ```
+    
+  * -p <host_port>:<container_port> — map host port to container (publish)
+      * that means my computer\'s port (host) will transfer any requests over to 27017 on the container. I have mongodb installed and the default port is already taken over by 27017.
+    * -d means detached so you don\'t get weird logging and you can still use the terminal afterwards
+    * --v [lhs:rhs] (save the data so your container can go down but this memory card stays in place)
+      * left hand side is where it goes to. Either you name it like i did with course-m220js-data
+        * that gets stored inside `docker volume ls`
+      * specify a directory path in the lhs if you dont want docker to store the volume.
+      * \db\configdb are for storing info for sharded clusters
+        * https://stackoverflow.com/questions/56855283/what-is-data-configdb-path-used-for-in-mongodb
+      * \db\data are for database info itself
+* ```
+  mongorestore --gzip --uri --drop \
+  mongodb://localhost:27018 data
+  ```
+  * load into our mongo database everything from the data folder using gzip. Since the folder inside of data is called mflix, your db name is also called **mflix**
+    * ---drop means drop any database called mflix if it finds it then mongorestore (load the data);
+    * confirm: 
+      ```bash
+      mongo mongodb://localhost:27018
+      show dbs;
+      use mflix;
+      show collections;
+      ```
+* Go to your app's root directory
+* the next step is to run the app's server 
+  * checkout out what npm start does.
+  * ` "start": "nodemon -L ./index.js",`
+    * -L means that if i had mounted my app in a container, this -L shit will make it work.
+    * Now let's checkout index.js
+    * it has [@babel/register · Babel](https://babeljs.io/docs/en/babel-register) which transpiles any es5 stuff on the fly.
+    * the exports export everything from the src file { all src stuff }. this is a little crazy that all functions are activated when you export them.       
+
+
+
+Notes:
+
+When you stop a docker container from spinning, the volume is cached cuz docker is insane. Either do this or add the `--rm` when you spin up the container.
+[Docker — Clean Up After Yourself! - Yohan Liyanage - Medium](https://medium.com/yohan-liyanage/docker-clean-up-after-yourself-8f39bfbd2000)
+
+## Aggregation applied to a cursor
+
+Vocabulary
+* def: Cursor
+  * A pointer to the result set of a query. Clients can iterate through a cursor to retrieve results. ... Essentially, the cursor is the conduit you will use to extract all the results of a query from the database.Sep 26, 2014 
+* Aggregation
+  * def: Aggregation
+    * Aggregation groups the data from multiple documents and operates in many ways on those grouped data in order to return one combined result. In sql count(*) and with group by is an equivalent of MongoDB aggregation. ... Let us now see how to make use of the aggregate function in MongoDB.
+  * Aggregation is a pipeline
+    * pipelines are composed of stages (broad unit of work)
+    * stages
+      * a specific unit of work inside stages is called 'expressions'
+      * expressions are functions
+    * example
+      * documents enter the assemply line
+      * Each stage does work on this document
+      * output then is the final form.
+
+limit
+sort
+skip
+
+$limit, $sort, $skip
+```js
+const skippedPipeline = [
+      { $match: { directors: "Sam Raimi" } },
+      { $project: { _id: 0, year: 1, title: 1, cast: 1 } },
+      { $sort: { year: 1 } },
+      { $skip: 5 },
+    ]
+    
+movies.aggregate(skippedPipeline)
+```
+is equivalent to
+
+```js
+ const skippedCursor = movies
+      .find({ directors: "Sam Raimi" }, { _id: 0, year: 1, title: 1, cast: 1 })
+      .sort([["year", 1]])
+      .skip(5)
+```
+
+
+original MD below
 =====
 Mflix
 =====
