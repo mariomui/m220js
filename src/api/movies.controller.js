@@ -105,7 +105,6 @@ export default class MoviesController {
 
   static async apiFacetedSearch(req, res, next) {
     const MOVIES_PER_PAGE = 20
-    console.log('am i being used?');
     let page
     try {
       page = req.query.page ? parseInt(req.query.page, 10) : 0
