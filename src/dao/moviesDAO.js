@@ -122,6 +122,7 @@ export default class MoviesDAO {
    * @returns {QueryParams} The QueryParams for cast search
    */
   static castSearchQuery(cast) {
+    console.log(cast);
     const searchCast = Array.isArray(cast) ? cast : cast.split(", ")
 
     const query = {

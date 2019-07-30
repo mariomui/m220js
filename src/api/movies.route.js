@@ -1,4 +1,6 @@
-import { Router } from "express"
+import {
+  Router
+} from "express"
 import MoviesCtrl from "./movies.controller"
 import CommentsCtrl from "./comments.controller"
 

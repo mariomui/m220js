@@ -5,21 +5,29 @@ import UsersDAO from "../dao/usersDAO"
 const hashPassword = async password => await bcrypt.hash(password, 10)
 
 export class User {
-  constructor({ name, email, password, preferences = {} } = {}) {
+  constructor({
+    name,
+    email,
+    password,
+    preferences = {}
+  } = {}) {
     this.name = name
     this.email = email
     this.password = password
     this.preferences = preferences
   }
   toJson() {
-    return { name: this.name, email: this.email, preferences: this.preferences }
+    return {
+      name: this.name,
+      email: this.email,
+      preferences: this.preferences
+    }
   }
   async comparePassword(plainText) {
     return await bcrypt.compare(plainText, this.password)
   }
   encoded() {
-    return jwt.sign(
-      {
+    return jwt.sign({
         exp: Math.floor(Date.now() / 1000) + 60 * 60 * 4,
         ...this.toJson(),
       },
@@ -29,7 +37,9 @@ export class User {
   static async decoded(userJwt) {
     return jwt.verify(userJwt, process.env.SECRET_KEY, (error, res) => {
       if (error) {
-        return { error }
+        return {
+          error
+        }
       }
       return new User(res)
     })
@@ -79,41 +89,61 @@ export default class UserController {
         info: user.toJson(),
       })
     } catch (e) {
-      res.status(500).json({ error: e })
+      res.status(500).json({
+        error: e
+      })
     }
   }
 
   static async login(req, res, next) {
     try {
-      const { email, password } = req.body
+      const {
+        email,
+        password
+      } = req.body
       if (!email || typeof email !== "string") {
-        res.status(400).json({ error: "Bad email format, expected string." })
+        res.status(400).json({
+          error: "Bad email format, expected string."
+        })
         return
       }
       if (!password || typeof password !== "string") {
-        res.status(400).json({ error: "Bad password format, expected string." })
+        res.status(400).json({
+          error: "Bad password format, expected string."
+        })
         return
       }
       let userData = await UsersDAO.getUser(email)
       if (!userData) {
-        res.status(401).json({ error: "Make sure your email is correct." })
+        res.status(401).json({
+          error: "Make sure your email is correct."
+        })
         return
       }
       const user = new User(userData)
 
       if (!(await user.comparePassword(password))) {
-        res.status(401).json({ error: "Make sure your password is correct." })
+        res.status(401).json({
+          error: "Make sure your password is correct."
+        })
         return
       }
 
       const loginResponse = await UsersDAO.loginUser(user.email, user.encoded())
       if (!loginResponse.success) {
-        res.status(500).json({ error: loginResponse.error })
+        res.status(500).json({
+          error: loginResponse.error
+        })
         return
       }
-      res.json({ auth_token: user.encoded(), info: user.toJson() })
+      res.json({
+        auth_token: user.encoded(),
+        info: user.toJson()
+      })
     } catch (e) {
-      res.status(400).json({ error: e })
+      res.status(400).json({
+        error: e
+      })
       return
     }
   }
@@ -122,15 +152,23 @@ export default class UserController {
     try {
       const userJwt = req.get("Authorization").slice("Bearer ".length)
       const userObj = await User.decoded(userJwt)
-      var { error } = userObj
+      var {
+        error
+      } = userObj
       if (error) {
-        res.status(401).json({ error })
+        res.status(401).json({
+          error
+        })
         return
       }
       const logoutResult = await UsersDAO.logoutUser(userObj.email)
-      var { error } = logoutResult
+      var {
+        error
+      } = logoutResult
       if (error) {
-        res.status(500).json({ error })
+        res.status(500).json({
+          error
+        })
         return
       }
       res.json(logoutResult)
@@ -141,27 +179,41 @@ export default class UserController {
 
   static async delete(req, res) {
     try {
-      let { password } = req.body
+      let {
+        password
+      } = req.body
       if (!password || typeof password !== "string") {
-        res.status(400).json({ error: "Bad password format, expected string." })
+        res.status(400).json({
+          error: "Bad password format, expected string."
+        })
         return
       }
       const userJwt = req.get("Authorization").slice("Bearer ".length)
       const userClaim = await User.decoded(userJwt)
-      var { error } = userClaim
+      var {
+        error
+      } = userClaim
       if (error) {
-        res.status(401).json({ error })
+        res.status(401).json({
+          error
+        })
         return
       }
       const user = new User(await UsersDAO.getUser(userClaim.email))
       if (!(await user.comparePassword(password))) {
-        res.status(401).json({ error: "Make sure your password is correct." })
+        res.status(401).json({
+          error: "Make sure your password is correct."
+        })
         return
       }
       const deleteResult = await UsersDAO.deleteUser(userClaim.email)
-      var { error } = deleteResult
+      var {
+        error
+      } = deleteResult
       if (error) {
-        res.status(500).json({ error })
+        res.status(500).json({
+          error
+        })
         return
       }
       res.json(deleteResult)
@@ -174,9 +226,13 @@ export default class UserController {
     try {
       const userJwt = req.get("Authorization").slice("Bearer ".length)
       const userFromHeader = await User.decoded(userJwt)
-      var { error } = userFromHeader
+      var {
+        error
+      } = userFromHeader
       if (error) {
-        res.status(401).json({ error })
+        res.status(401).json({
+          error
+        })
         return
       }
 

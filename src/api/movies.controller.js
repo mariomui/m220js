@@ -3,7 +3,10 @@ import MoviesDAO from "../dao/moviesDAO"
 export default class MoviesController {
   static async apiGetMovies(req, res, next) {
     const MOVIES_PER_PAGE = 20
-    const { moviesList, totalNumMovies } = await MoviesDAO.getMovies()
+    const {
+      moviesList,
+      totalNumMovies
+    } = await MoviesDAO.getMovies()
     let response = {
       movies: moviesList,
       page: 0,
@@ -15,9 +18,9 @@ export default class MoviesController {
   }
 
   static async apiGetMoviesByCountry(req, res, next) {
-    let countries = Array.isArray(req.query.countries)
-      ? req.query.countries
-      : Array(req.query.countries)
+    let countries = Array.isArray(req.query.countries) ?
+      req.query.countries :
+      Array(req.query.countries)
     let moviesList = await MoviesDAO.getMoviesByCountry(countries)
     let response = {
       titles: moviesList,
@@ -30,14 +33,21 @@ export default class MoviesController {
       let id = req.params.id || {}
       let movie = await MoviesDAO.getMovieByID(id)
       if (!movie) {
-        res.status(404).json({ error: "Not found" })
+        res.status(404).json({
+          error: "Not found"
+        })
         return
       }
       let updated_type = movie.lastupdated instanceof Date ? "Date" : "other"
-      res.json({ movie, updated_type })
+      res.json({
+        movie,
+        updated_type
+      })
     } catch (e) {
       console.log(`api, ${e}`)
-      res.status(500).json({ error: e })
+      res.status(500).json({
+        error: e
+      })
     }
   }
 
@@ -70,10 +80,13 @@ export default class MoviesController {
         filters.text = req.query.text
         break
       default:
-      // nothing to do
+        // nothing to do
     }
 
-    const { moviesList, totalNumMovies } = await MoviesDAO.getMovies({
+    const {
+      moviesList,
+      totalNumMovies
+    } = await MoviesDAO.getMovies({
       filters,
       page,
       MOVIES_PER_PAGE,
@@ -92,7 +105,7 @@ export default class MoviesController {
 
   static async apiFacetedSearch(req, res, next) {
     const MOVIES_PER_PAGE = 20
-
+    console.log('am i being used?');
     let page
     try {
       page = req.query.page ? parseInt(req.query.page, 10) : 0
@@ -105,7 +118,9 @@ export default class MoviesController {
       return this.apiSearchMovies(req, res, next)
     }
 
-    const filters = { cast: req.query.cast }
+    const filters = {
+      cast: req.query.cast
+    }
 
     const facetedSearchResult = await MoviesDAO.facetedSearch({
       filters,
@@ -129,7 +144,11 @@ export default class MoviesController {
   }
 
   static async getConfig(req, res, next) {
-    const { poolSize, wtimeout, authInfo } = await MoviesDAO.getConfiguration()
+    const {
+      poolSize,
+      wtimeout,
+      authInfo
+    } = await MoviesDAO.getConfiguration()
     try {
       let response = {
         pool_size: poolSize,
@@ -138,7 +157,9 @@ export default class MoviesController {
       }
       res.json(response)
     } catch (e) {
-      res.status(500).json({ error: e })
+      res.status(500).json({
+        error: e
+      })
     }
   }
 }
