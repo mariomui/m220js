@@ -113,6 +113,7 @@ export default class CommentsDAO {
       // Use the userEmail and commentId to delete the proper comment.
       const deleteResponse = await comments.deleteOne({
         _id: ObjectId(commentId),
+        email: userEmail
       })
 
       return deleteResponse
@@ -135,11 +136,26 @@ export default class CommentsDAO {
     try {
       // TODO Ticket: User Report
       // Return the 20 users who have commented the most on MFlix.
-      const pipeline = []
+      //aggregate user on number of comments stage1
+      //then sort by these comments.
+      const stage1 = {
+          $sortByCount: "$email"
+        },
+        stage2 = {
+          $limit: 20
+        };
+
+      const pipeline = [
+        stage1,
+        stage2,
+      ]
 
       // TODO Ticket: User Report
       // Use a more durable Read Concern here to make sure this data is not stale.
-      const readConcern = comments.readConcern
+      // const readConcern = comments.readConcern
+      const readConcern = {
+        level: "majority"
+      }
 
       const aggregateResult = await comments.aggregate(pipeline, {
         readConcern,
