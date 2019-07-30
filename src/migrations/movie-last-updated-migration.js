@@ -1,3 +1,8 @@
+const path = require('path');
+require('dotenv').config({
+  path: path.resolve(__dirname, '../../.env')
+});
+
 const MongoClient = require("mongodb").MongoClient
 const ObjectId = require("mongodb").ObjectId
 const MongoError = require("mongodb").MongoError
@@ -14,13 +19,15 @@ const MongoError = require("mongodb").MongoError
 
 // This leading semicolon (;) is to make this Immediately Invoked Function Expression (IIFE).
 // To read more about this type of expression, refer to https://developer.mozilla.org/en-US/docs/Glossary/IIFE
-;(async () => {
+;
+(async () => {
   try {
     // ensure you update your host information below!
-    const host = "mongodb://<your atlas connection uri from your .env file"
+    const host = process.env.MFLIX_DB_URI;
     const client = await MongoClient.connect(
-      host,
-      { useNewUrlParser: true },
+      host, {
+        useNewUrlParser: true
+      },
     )
     const mflix = client.db(process.env.MFLIX_NS)
 
@@ -29,17 +36,31 @@ const MongoError = require("mongodb").MongoError
     // check that its type is a string
     // a projection is not required, but may help reduce the amount of data sent
     // over the wire!
-    const predicate = { somefield: { $someOperator: true } }
-    const projection = {}
+    const predicate = {
+      lastupdated: {
+        $exists: true
+      }
+    }
+    const projection = {
+      _id: 1,
+      lastupdated: 1
+    }
     const cursor = await mflix
       .collection("movies")
       .find(predicate, projection)
       .toArray()
-    const moviesToMigrate = cursor.map(({ _id, lastupdated }) => ({
+    const moviesToMigrate = cursor.map(({
+      _id,
+      lastupdated
+    }) => ({
       updateOne: {
-        filter: { _id: ObjectId(_id) },
+        filter: {
+          _id: ObjectId(_id)
+        },
         update: {
-          $set: { lastupdated: new Date(Date.parse(lastupdated)) },
+          $set: {
+            lastupdated: new Date(Date.parse(lastupdated))
+          },
         },
       },
     }))
@@ -48,7 +69,9 @@ const MongoError = require("mongodb").MongoError
       `Found ${moviesToMigrate.length} documents to update`,
     )
     // TODO: Complete the BulkWrite statement below
-    const { modifiedCount } = await "some bulk operation"
+    const {
+      modifiedCount
+    } = await mflix.collection('movies').bulkWrite(moviesToMigrate)
 
     console.log("\x1b[32m", `${modifiedCount} documents updated`)
     client.close()
