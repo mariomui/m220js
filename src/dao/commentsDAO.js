@@ -49,11 +49,10 @@ export default class CommentsDAO {
       // Construct the comment document to be inserted into MongoDB.
       const commentDoc = {
         text: comment,
-        movie_id: movieId,
+        movie_id: ObjectId(movieId),
         date,
         name: user.name,
         email: user.email
-
       }
 
       return await comments.insertOne(commentDoc)
@@ -81,10 +80,12 @@ export default class CommentsDAO {
       // Use the commentId and userEmail to select the proper comment, then
       // update the "text" and "date" fields of the selected comment.
       const updateResponse = await comments.updateOne({
-        someField: "someValue"
+        _id: ObjectId(commentId),
+        email: userEmail
       }, {
         $set: {
-          someOtherField: "someOtherValue"
+          text,
+          date
         }
       }, )
 
