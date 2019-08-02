@@ -361,7 +361,7 @@ export default class MoviesDAO {
 
       Given a movie ID, build an Aggregation Pipeline to retrieve the comments
       matching that movie's ID.
-
+      
       The $match stage is already completed. You will need to add a $lookup
       stage that searches the `comments` collection for the correct comments.
       */
@@ -433,11 +433,11 @@ export default class MoviesDAO {
       Handle the error that occurs when an invalid ID is passed to this method.
       When this specific error is thrown, the method should return `null`.
       */
-
       // TODO Ticket: Error Handling
       // Catch the InvalidId error by string matching, and then handle it.
       console.error(`Something went wrong in getMovieByID: ${e}`)
-      throw e
+      return null
+      // throw e
     }
   }
 }
